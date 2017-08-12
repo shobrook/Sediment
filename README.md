@@ -31,7 +31,7 @@ It's clear that pH and citric acid are strongly correlated with many other attri
 From here, I instantiated linear, decision tree, random forest, and support vector regressors and fitted each with the training set. A grid search was employed to find the best-performing hyperparamater values for each model––perfomance being measured using 5-fold cross validation. The prevailing model was a support vector regressor with a radial kernel and the following paramaters: epsilon=0.1, C=1, gamma=0.01.
 
 
-Finally, I ran the model on the test set and obtained a RMSE of 0.71. A confusion matrix is then plotted:
+Finally, I ran the model on the test set and obtained a RMSE of 0.71. A confusion matrix is then plotted to get a better picture of the model's performance:
 
 
 ![Confusion Matrix](assets/images/confusion_matrix.png)
