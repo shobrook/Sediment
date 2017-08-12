@@ -19,8 +19,11 @@ from sklearn.tree import DecisionTreeRegressor
 from sklearn.model_selection import GridSearchCV
 from sklearn.preprocessing import StandardScaler
 from sklearn.linear_model import LinearRegression
+from sklearn.model_selection import StratifiedKFold
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.model_selection import cross_val_score
+from sklearn.preprocessing import FunctionTransformer
+from sklearn.feature_selection import VarianceThreshold
 from sklearn.base import BaseEstimator, TransformerMixin
 
 np.random.seed(42) # Makes outputs stable across runs
@@ -38,7 +41,7 @@ class DataFrameSelector(BaseEstimator, TransformerMixin):
 ### Fetching the Data ###
 
 
-def load_wine_quality_data(wine_quality_path="winequality-red.csv"):
+def load_wine_quality_data(wine_quality_path="assets/winequality-red.csv"):
 	"""Returns a Pandas DataFrame object containing formatted wine quality data"""
 	csv_path = os.path.abspath(wine_quality_path) 
 	return pd.read_csv(csv_path, sep=';')
@@ -67,12 +70,6 @@ print(wine.describe())
 wine.hist(bins=50, figsize=(20,15))
 plt.show()
 
-# NOTE: The concentration on 5 and 6 in the wine quality distribution. This left-skew 
-# will skew predictions towards 5 and 6, making other scores difficult to predict.
-
-# NOTE: Some features have a tail-heavy distribution, so they may need to be transformed
-# (e.g., by computing their logarithm).
-
 
 ### Build a Test Set ###
 
@@ -91,19 +88,13 @@ def split_train_test_by_id(data, test_ratio, id_column, hash=hashlib.md5):
 wine_with_id = wine.reset_index() # Adds an index column
 train_set, test_set = split_train_test_by_id(wine_with_id, 0.2, "index") # 80% of data for training, 20% for testing
 
-# NOTE: For the most important feature(s), apply stratified sampling.
-
 
 ### Understand the Data ###
 
 
 wine = train_set.copy() # Excluding test_set avoids data snooping bias
 
-"""
-# Consolidate related features
-wine["free SO2 / total SO2"] = wine["free sulfur dioxide"] / wine["total sulfur dioxide"]
-wine["volatile acidity / fixed acidity"] = wine["volatile acidity"] / wine["fixed acidity"]
-"""
+print("")
 
 # Check Spearman coefficients between each feature and quality
 spear_corr_matrix = wine.corr(method='spearman') # Spearman's method b/c quality is an ordinal variable
@@ -113,8 +104,8 @@ print(spear_corr_matrix["quality"].sort_values(ascending=False))
 print("")
 
 # Plot a heatmap of Pearson coefficients b/w each feature
-pear_corr_matrix = wine.corr(method='pearson') # TODO: Exclude quality
-sns.heatmap(pear_corr_matrix, xticklabels=pear_corr_matrix.columns, yticklabels=pear_corr_matrix.columns)
+pear_corr_matrix = wine.drop("index", axis=1).corr(method='pearson')
+sns.heatmap(pear_corr_matrix, square=True, xticklabels="auto", yticklabels="auto")
 
 """
 # Plots a scatter matrix between each feature
@@ -137,13 +128,15 @@ plt.show()
 ### Prepare the Data ###
 
 
-wine = train_set.drop("quality", axis=1)
+wine = train_set.drop(["quality", "citric acid", "pH"], axis=1)
 wine_labels = train_set["quality"].copy()
 
 pipeline = Pipeline([
 	('selector', DataFrameSelector(list(wine))),
 	('std_scaler', StandardScaler())
 ])
+
+# TODO: Apply a log transform to features with a tail-heavy distribution
 
 wine_prepared = pipeline.fit_transform(wine)
 
@@ -171,13 +164,6 @@ svr_rbf.fit(wine_prepared, wine_labels)
 
 svr_lin = SVR(kernel='linear')
 svr_lin.fit(wine_prepared, wine_labels)
-
-"""
-some_data_prepared = pipeline.transform(wine.iloc[:5])
-some_labels = wine_labels.iloc[:5]
-print("Predictions:\t", np.round(lin_reg.predict(some_data_prepared), decimals=0))
-print("Labels:\t\t", list(some_labels))
-"""
 
 # K-Fold Cross-Validation (with 5 evaluation scores)
 lin_scores = cross_val_score(lin_reg, wine_prepared, wine_labels, scoring="neg_mean_squared_error", cv=5)
