@@ -43,7 +43,7 @@ As expected, 5, 6, and 7 were easier to predict than the rest.
 
 * Provide support for custom input data
 
-* Log transform tail-heavy attributes
+* Logarithm transform tail-heavy attributes
 
 * Apply stratified sampling for alcohol and volatile acidity
 
