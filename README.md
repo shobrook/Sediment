@@ -1,7 +1,7 @@
 Wine-Quality-Predictor
 ======
 **The goal of this program is to predict the quality score of a red wine given it's chemical properties... and to teach myself regression.** 
-Each wine in the dataset has the following attributes: fixed acidity, volatile acidity, citric acid, residual sugar, chlorides, free sulfur dioxide, total sulfur dioxide, density, pH, sulphates, alcohol, and quality. Quality is an ordinal value between 0 (low) and 10 (high), scored by wine-tasting professionals (alcoholics?). After evaluating five different estimators, I chose support vector regression and obtained a root-mean-square error of 0.64 on the validation set.
+Each wine in the dataset has the following attributes: fixed acidity, volatile acidity, citric acid, residual sugar, chlorides, free sulfur dioxide, total sulfur dioxide, density, pH, sulphates, alcohol, and quality. Quality is an ordinal value between 0 (low) and 10 (high), scored by wine-tasting professionals. After evaluating five different estimators, I chose support vector regression and obtained a root-mean-square error of 0.64 on the validation set.
 
 ## How to Run
 
